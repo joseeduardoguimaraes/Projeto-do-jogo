@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 # Estados possíveis do jogador
+	#
 enum PlayerState {
 	idle,
 	run,
