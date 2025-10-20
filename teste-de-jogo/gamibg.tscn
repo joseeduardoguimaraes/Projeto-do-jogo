@@ -1,0 +1,967 @@
+[gd_scene load_steps=93 format=3 uid="uid://btmjcbn2512ox"]
+
+[ext_resource type="Texture2D" uid="uid://xd8f58gpyu1y" path="res://assets_boneco/Player-dash-Sheet.png" id="1_cg8gs"]
+[ext_resource type="Texture2D" uid="uid://b8nrp2pugi1w8" path="res://assets_boneco/Player-Attack[1]-Sheet.png" id="1_p57bc"]
+[ext_resource type="Texture2D" uid="uid://cigv4kuqa4uo0" path="res://assets_boneco/Player-Jump-Sheet.png" id="2_cg8gs"]
+[ext_resource type="Texture2D" uid="uid://l1mw2y7s20x8" path="res://assets_boneco/Player-run-attack[1]-Sheet.png" id="2_kqvpm"]
+[ext_resource type="Texture2D" uid="uid://cw0txydoawdic" path="res://assets_boneco/Player-Crouched-Sheet.png" id="2_wkv1o"]
+[ext_resource type="Texture2D" uid="uid://bldawvoh5a42v" path="res://assets_boneco/Player-run-Sheet.png" id="3_yy2gq"]
+[ext_resource type="Texture2D" uid="uid://bwt7gm4s1wnd4" path="res://assets_boneco/Player-Sheet.png" id="4_p57bc"]
+[ext_resource type="Texture2D" uid="uid://b86w5qs5setng" path="res://assets_boneco/Player-Wall-Grip-Sheet.png" id="7_wkv1o"]
+[ext_resource type="Texture2D" uid="uid://delbf588jjfgt" path="res://Cenario-Tutorial-Recovered[2].png" id="9_kqvpm"]
+[ext_resource type="Texture2D" uid="uid://baslx8el06uqk" path="res://camadas_cenario/Cenario-Tutorial-Ceu-0.png" id="9_ptbwg"]
+[ext_resource type="Texture2D" uid="uid://dx5wqib31t6g" path="res://camadas_cenario/Cenario-Tutorial-background-5.png" id="10_mt60b"]
+[ext_resource type="Texture2D" uid="uid://c3p40oj7bj2kg" path="res://Cenario-Tutorial-Recovered[3]-Sheet.png" id="10_ndims"]
+[ext_resource type="Texture2D" uid="uid://hkyjxechox6x" path="res://camadas_cenario/Cenario-Tutorial-background-4.png" id="11_aqs22"]
+[ext_resource type="Texture2D" uid="uid://ytwmcpc5jx3i" path="res://camadas_cenario/Cenario-Tutorial-background-3.png" id="12_xonmt"]
+[ext_resource type="Texture2D" uid="uid://ua7nhyf35rdj" path="res://camadas_cenario/Cenario-Tutorial-background-2.png" id="13_xfbxg"]
+[ext_resource type="Texture2D" uid="uid://dbyj3aoqqftiu" path="res://camadas_cenario/Cenario-Tutorial-background-1.png" id="14_1gr0i"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wkv1o"]
+size = Vector2(57, 690)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p57bc"]
+size = Vector2(951, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kqvpm"]
+size = Vector2(64, 14)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ndims"]
+size = Vector2(448, 175)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ek6hj"]
+size = Vector2(390.5, 123)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sjjer"]
+size = Vector2(141, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_soxon"]
+size = Vector2(79, 180.75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_37e0o"]
+size = Vector2(106, 297)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o6fqo"]
+size = Vector2(331.5, 22)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ptbwg"]
+size = Vector2(248.5, 67)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mt60b"]
+size = Vector2(382, 187)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aqs22"]
+size = Vector2(47.5, 55)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xonmt"]
+size = Vector2(65, 269)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xfbxg"]
+size = Vector2(1852, 333)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1gr0i"]
+size = Vector2(5.5, 337)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v1uy6"]
+size = Vector2(37, 20)
+
+[sub_resource type="GDScript" id="GDScript_fja80"]
+script/source = "extends CharacterBody2D
+# Estados possíveis do jogador
+enum PlayerState {
+	idle,
+	run,
+	pulo,
+	dash,
+	crouch,
+	fall,
+	wall,
+	dead,
+	hit,
+	attack
+}
+
+# Referências aos nós do Godot
+@onready var anim: AnimatedSprite2D = $anim
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var coyote_timer: Timer = $coyote_timer as Timer
+@onready var left_wall: RayCast2D = $left_wall
+@onready var right_wall: RayCast2D = $right_wall
+
+
+# Constantes de física
+const SPEED = 200.0
+const FORCA_PULO = -400.0
+const DASH_SPEED = 500.0
+const DASH_TIME = 0.2
+
+# Variáveis do jogador
+var direction := Input.get_axis(\"left\", \"right\")
+var status: PlayerState
+var dash_timer = 0.0
+var dash_cout := true
+var pular := true
+var in_wall := true
+var wall_acelerate = 20
+var life = 3
+var life_b = 3
+
+# Inicializa o jogador no estado idle
+func _ready() -> void:
+	go_to_idle_state()
+
+# Processa a física e a máquina de estados a cada frame
+func _physics_process(delta: float) -> void:
+	# Executa a lógica de cada estado
+	match status:
+		PlayerState.idle:
+			idle_state(delta)
+		PlayerState.run:
+			run_state(delta)
+		PlayerState.pulo:
+			pulo_state(delta)
+		PlayerState.dash:
+			dash_state(delta)
+		PlayerState.crouch:
+			crouch_state(delta)
+		PlayerState.fall:
+			fall_state(delta)
+		PlayerState.wall:
+			wall_state(delta)
+		PlayerState.dead:
+			dead_state()
+		PlayerState.hit:
+			hit_state()
+		PlayerState.attack:
+			attack_state(delta)
+
+# Aplica a movimentação ao personagem
+	move_and_slide()
+
+# Funções para transição entre estados e animações correspondentes
+func go_to_idle_state():
+	status = PlayerState.idle
+	anim.play(\"idle\")
+	dash_cout = true
+
+func go_to_run_state():
+	status = PlayerState.run
+	anim.play(\"run\")
+	dash_cout = true
+
+func go_to_pulo_state():
+	status = PlayerState.pulo
+	anim.play(\"pulo\")
+func go_to_dash_state():
+	status = PlayerState.dash
+	anim.play(\"dash\")
+	dash_timer = DASH_TIME
+	dash_cout = false
+	if anim.flip_h:
+		velocity.x = velocity.x - DASH_SPEED
+	else:
+		velocity.x = velocity.x + DASH_SPEED
+	velocity.y = 0
+
+func go_to_crouch_state(delta):
+	status = PlayerState.crouch
+	anim.play(\"crouch\")
+	collision_shape.shape.height = 35
+	collision_shape.position.y = 15
+	velocity.x = 0
+
+func go_to_fall_state():
+	status = PlayerState.fall
+	anim.play(\"pulo\")
+	in_wall = false
+
+func go_to_wall_state():
+	status = PlayerState.wall
+	anim.play(\"wall\")
+	pular = true
+	in_wall = true
+	dash_cout = true
+	velocity = Vector2.ZERO
+func go_to_idle_attack_state():
+	status = PlayerState.attack
+	anim.play(\"attack_idle\")
+	in_wall = false
+func go_to_run_attack_state():
+	status = PlayerState.attack
+	anim.play(\"attack_run\")
+	in_wall = false
+func go_to_up_attack_state():
+	pass
+# Lógica de cada estado
+func idle_state(delta):
+	gravity(delta)
+	move()
+	if velocity.x != 0:
+		go_to_run_state()
+		return
+	if velocity.y < 0:
+		go_to_pulo_state()
+		return
+	if velocity.y > 0:
+		go_to_fall_state()
+		return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout:
+		go_to_dash_state()
+		return
+	elif Input.is_action_pressed(\"crouch\") and is_on_floor():
+		go_to_crouch_state(delta)
+		return
+
+func run_state(delta):
+	gravity(delta)
+	move()
+	if velocity.x == 0 and is_on_floor():
+		go_to_idle_state()
+		return
+	if velocity.y > 0:
+		go_to_fall_state()
+		return
+	if velocity.y < 0:
+		go_to_pulo_state()
+		return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout:
+		go_to_dash_state()
+		return
+	elif Input.is_action_pressed(\"crouch\") and is_on_floor():
+		go_to_crouch_state(delta)
+		return
+
+func pulo_state(delta):
+	gravity(delta)
+	move()
+	pular = false
+	if velocity.y > 0:
+		go_to_fall_state()
+		return
+	if Input.is_action_just_pressed(\"dash\")and dash_cout:
+		go_to_dash_state()
+		return
+
+func dash_state(delta):
+	gravity(delta)
+	move()
+	dash_timer -= get_physics_process_delta_time()
+	if dash_timer <= 0:
+		if velocity.y != 0:
+			go_to_fall_state()
+		if velocity.x != 0 and velocity.y == 0:
+			go_to_run_state()
+		elif velocity.x == 0 and velocity.y == 0:
+			go_to_idle_state()	
+
+func crouch_state(delta):
+	flip()
+	if Input.is_action_just_released(\"crouch\"):
+		exit_crouch()
+		go_to_idle_state()
+		return
+	
+func exit_crouch():
+	collision_shape.shape.height = 60.0
+	collision_shape.position.y = 0.0
+
+func fall_state(delta):
+	gravity(delta)
+	move()
+	if Input.is_action_just_pressed(\"dash\") and dash_cout:
+		go_to_dash_state()
+		return
+	if left_wall.is_colliding() and Input.is_action_pressed(\"left\") and !in_wall or right_wall.is_colliding() and Input.is_action_pressed(\"right\") and !in_wall:
+		in_wall = false
+		go_to_wall_state()
+		return
+	if is_on_floor():
+		if velocity.x == 0:
+			go_to_idle_state()
+			return
+		else:
+			go_to_run_state()
+			return
+
+func wall_state(delta):
+	velocity.y += wall_acelerate * delta
+	if left_wall.is_colliding():
+		anim.flip_h = true
+		direction = -1
+	else:
+		anim.flip_h = false
+		direction = 1
+	if Input.is_action_just_pressed(\"pulo\") and pular:
+		velocity.y = FORCA_PULO
+		in_wall = false
+		go_to_pulo_state()
+		return
+	if is_on_floor():
+		go_to_idle_state()
+		return
+	if Input.is_action_just_released(\"left\"):
+		go_to_fall_state()
+		return
+	if Input.is_action_just_released(\"right\"):
+		go_to_fall_state()
+		return
+
+func dead_state():
+	pass
+
+func hit_state():
+	pass
+func attack_state(delta):
+	gravity(delta)
+	move()
+	if Input.is_action_just_released(\"attack\")and velocity.x ==0:
+		go_to_idle_state()
+		return
+	if Input.is_action_just_released(\"attack\")and velocity.x !=0:
+		go_to_run_state()
+		return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout:
+		go_to_dash_state()
+	if left_wall.is_colliding() and Input.is_action_pressed(\"left\") and !in_wall or right_wall.is_colliding() and Input.is_action_pressed(\"right\") and !in_wall:
+		in_wall = false
+		go_to_wall_state()
+		
+# Lida com a movimentação horizontal e o pulo
+func move():
+	flip()
+	if status != PlayerState.dash:
+		if Input.is_action_just_pressed(\"pulo\") and pular:
+			velocity.y = FORCA_PULO
+		if is_on_floor() and !pular:
+			pular = true
+		elif pular and coyote_timer.is_stopped():
+			coyote_timer.start()
+	
+		if direction:
+			velocity.x = direction * SPEED
+		else:
+			velocity.x = move_toward(velocity.x, 0, SPEED)
+		
+		if Input.is_action_pressed(\"attack\") and velocity.x == 0:
+			go_to_idle_attack_state()
+		if Input.is_action_pressed(\"attack\") and velocity.x !=0:
+			go_to_run_attack_state()
+# Inverte a sprite do jogador com base na direção
+func flip():
+	direction = Input.get_axis(\"left\", \"right\")
+	if direction < 0:
+		anim.flip_h = true
+	elif direction > 0:
+		anim.flip_h = false	
+
+# Aplica gravidade quando o jogador não está no chão
+func gravity(delta):
+	if not is_on_floor():
+		velocity += (get_gravity() * delta)
+	elif is_on_floor() and status != PlayerState.dash:
+		velocity.y = 0
+
+# Controla o tempo de tolerância para pulo (coyote time)
+func _on_coyote_timer_timeout() -> void:
+	pular = false
+"
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_uxa4c"]
+radius = 12.0
+height = 60.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_so5xh"]
+atlas = ExtResource("1_p57bc")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pba6m"]
+atlas = ExtResource("1_p57bc")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fqip1"]
+atlas = ExtResource("1_p57bc")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v2vws"]
+atlas = ExtResource("1_p57bc")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i5d5e"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2niqt"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pxvxk"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sn024"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m50rl"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qj137"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dii7c"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bhnfu"]
+atlas = ExtResource("2_kqvpm")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kqvpm"]
+atlas = ExtResource("2_wkv1o")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ndims"]
+atlas = ExtResource("2_wkv1o")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ek6hj"]
+atlas = ExtResource("2_wkv1o")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sjjer"]
+atlas = ExtResource("2_wkv1o")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_soxon"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_37e0o"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o6fqo"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptbwg"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mt60b"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aqs22"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xonmt"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xfbxg"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1gr0i"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(512, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v1uy6"]
+atlas = ExtResource("1_cg8gs")
+region = Rect2(576, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_omeo0"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ximej"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wi0it"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o2fss"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1earh"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0isdi"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1p84p"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jkgop"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pbfgb"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(512, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dq15s"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(576, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a05j8"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(640, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_48jlx"]
+atlas = ExtResource("4_p57bc")
+region = Rect2(704, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fgx2t"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y77rg"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tce5h"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sw7tl"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lsqn8"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cycwg"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nfqtd"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ndpcg"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hvd27"]
+atlas = ExtResource("2_cg8gs")
+region = Rect2(512, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ksy3"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tpxin"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qvbnu"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ee8m2"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_twihj"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3qhjn"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mmrf3"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pveku"]
+atlas = ExtResource("3_yy2gq")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ki4qu"]
+atlas = ExtResource("7_wkv1o")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wkv1o"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_so5xh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pba6m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fqip1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v2vws")
+}],
+"loop": true,
+"name": &"attack_idle",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i5d5e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2niqt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pxvxk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sn024")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m50rl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qj137")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dii7c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bhnfu")
+}],
+"loop": true,
+"name": &"attack_run",
+"speed": 15.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kqvpm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ndims")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ek6hj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sjjer")
+}],
+"loop": false,
+"name": &"crouch",
+"speed": 30.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_soxon")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_37e0o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o6fqo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ptbwg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mt60b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aqs22")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xonmt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xfbxg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1gr0i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v1uy6")
+}],
+"loop": true,
+"name": &"dash",
+"speed": 60.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_omeo0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ximej")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wi0it")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o2fss")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1earh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0isdi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1p84p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jkgop")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pbfgb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dq15s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a05j8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_48jlx")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fgx2t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y77rg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tce5h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sw7tl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lsqn8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cycwg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nfqtd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ndpcg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hvd27")
+}],
+"loop": true,
+"name": &"pulo",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7ksy3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tpxin")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qvbnu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ee8m2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_twihj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3qhjn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mmrf3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pveku")
+}],
+"loop": true,
+"name": &"run",
+"speed": 15.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ki4qu")
+}],
+"loop": true,
+"name": &"wall",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ptbwg"]
+height = 54.0
+
+[node name="Node2D" type="Node2D"]
+
+[node name="CenarioTutorialCeu0" type="Sprite2D" parent="."]
+position = Vector2(2500, 351)
+texture = ExtResource("9_ptbwg")
+
+[node name="CenarioTutorialBackground2" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("13_xfbxg")
+
+[node name="CenarioTutorialBackground1" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("14_1gr0i")
+
+[node name="CenarioTutorialBackground5" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("10_mt60b")
+
+[node name="CenarioTutorialBackground3" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("12_xonmt")
+
+[node name="CenarioTutorialBackground4" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("11_aqs22")
+
+[node name="CenarioTutorialBackground7" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("10_mt60b")
+
+[node name="CenarioTutorialRecovered[3]Sheet" type="Sprite2D" parent="CenarioTutorialCeu0"]
+texture = ExtResource("10_ndims")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet"]
+visible = false
+position = Vector2(-1, -7)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-2470.5, -1)
+shape = SubResource("RectangleShape2D_wkv1o")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-1965, 308)
+shape = SubResource("RectangleShape2D_p57bc")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-2083, 290)
+shape = SubResource("RectangleShape2D_kqvpm")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-933, 321.5)
+shape = SubResource("RectangleShape2D_ndims")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-390.25, 351.5)
+shape = SubResource("RectangleShape2D_ek6hj")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-123.5, 278)
+shape = SubResource("RectangleShape2D_sjjer")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-94, 137.625)
+shape = SubResource("RectangleShape2D_soxon")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(67, 192.5)
+shape = SubResource("RectangleShape2D_37e0o")
+
+[node name="CollisionShape2D9" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(291.25, 118)
+shape = SubResource("RectangleShape2D_o6fqo")
+
+[node name="CollisionShape2D10" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-1601.25, 77.5)
+shape = SubResource("RectangleShape2D_ptbwg")
+
+[node name="CollisionShape2D11" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-1733, 206.5)
+shape = SubResource("RectangleShape2D_mt60b")
+
+[node name="CollisionShape2D12" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-1513.75, 169.5)
+shape = SubResource("RectangleShape2D_aqs22")
+
+[node name="CollisionShape2D13" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-1509.5, 366)
+shape = SubResource("RectangleShape2D_xonmt")
+
+[node name="CollisionShape2D14" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(1539, 357.5)
+shape = SubResource("RectangleShape2D_xfbxg")
+
+[node name="CollisionShape2D15" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-268.75, -6.5)
+shape = SubResource("RectangleShape2D_1gr0i")
+
+[node name="CollisionShape2D16" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+position = Vector2(-1940.5, 229)
+shape = SubResource("RectangleShape2D_v1uy6")
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+position = Vector2(190, 242)
+collision_mask = 2
+script = SubResource("GDScript_fja80")
+
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
+scale = Vector2(5, 5)
+zoom = Vector2(1.4, 1.4)
+limit_left = 0
+limit_top = 0
+limit_bottom = 680
+position_smoothing_enabled = true
+position_smoothing_speed = 3.0
+drag_horizontal_offset = 1.0
+drag_bottom_margin = 0.4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+visible = false
+z_index = 2
+position = Vector2(-3, 4)
+shape = SubResource("CapsuleShape2D_uxa4c")
+
+[node name="anim" type="AnimatedSprite2D" parent="CharacterBody2D"]
+position = Vector2(-1.5, 2.46252)
+scale = Vector2(0.953125, 0.976951)
+sprite_frames = SubResource("SpriteFrames_wkv1o")
+animation = &"attack_run"
+
+[node name="coyote_timer" type="Timer" parent="CharacterBody2D"]
+wait_time = 0.3
+one_shot = true
+
+[node name="left_wall" type="RayCast2D" parent="CharacterBody2D"]
+position = Vector2(-7, 0)
+target_position = Vector2(-10, 0)
+collision_mask = 2
+
+[node name="right_wall" type="RayCast2D" parent="CharacterBody2D"]
+position = Vector2(1, 0)
+target_position = Vector2(10, 0)
+collision_mask = 2
+
+[node name="hurtbox" type="Area2D" parent="CharacterBody2D"]
+collision_layer = 16
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/hurtbox"]
+visible = false
+shape = SubResource("CapsuleShape2D_ptbwg")
+
+[node name="CanvasGroup" type="CanvasGroup" parent="."]
+modulate = Color(1, 1, 1, 0.5803922)
+light_mask = 545
+
+[node name="CenarioTutorialRecovered[2]" type="Sprite2D" parent="CanvasGroup"]
+texture_filter = 5
+texture_repeat = 1
+position = Vector2(2501, 349)
+texture = ExtResource("9_kqvpm")
+
+[connection signal="timeout" from="CharacterBody2D/coyote_timer" to="CharacterBody2D" method="_on_coyote_timer_timeout"]
