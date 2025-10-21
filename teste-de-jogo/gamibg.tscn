@@ -77,7 +77,6 @@ enum PlayerState {
 	fall,
 	wall,
 	dead,
-	hit,
 	attack
 }
 
@@ -89,12 +88,13 @@ enum PlayerState {
 @onready var right_wall: RayCast2D = $right_wall
 
 
-# Constantes de física
+
+# Constantes
 const SPEED = 200.0
-const FORCA_PULO = -400.0
+const FORCA_PULO = -470.0
 const DASH_SPEED = 500.0
 const DASH_TIME = 0.2
-
+const SHOT = preload(\"uid://d0uxlnd75mdey\")
 # Variáveis do jogador
 var direction := Input.get_axis(\"left\", \"right\")
 var status: PlayerState
@@ -130,8 +130,6 @@ func _physics_process(delta: float) -> void:
 			wall_state(delta)
 		PlayerState.dead:
 			dead_state()
-		PlayerState.hit:
-			hit_state()
 		PlayerState.attack:
 			attack_state(delta)
 
@@ -166,8 +164,6 @@ func go_to_dash_state():
 func go_to_crouch_state(delta):
 	status = PlayerState.crouch
 	anim.play(\"crouch\")
-	collision_shape.shape.height = 35
-	collision_shape.position.y = 15
 	velocity.x = 0
 
 func go_to_fall_state():
@@ -182,14 +178,17 @@ func go_to_wall_state():
 	in_wall = true
 	dash_cout = true
 	velocity = Vector2.ZERO
+	
 func go_to_idle_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_idle\")
 	in_wall = false
+	
 func go_to_run_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_run\")
 	in_wall = false
+	
 func go_to_up_attack_state():
 	pass
 # Lógica de cada estado
@@ -261,9 +260,11 @@ func crouch_state(delta):
 		go_to_idle_state()
 		return
 	
+func entry_crouch():
+	pass
+
 func exit_crouch():
-	collision_shape.shape.height = 60.0
-	collision_shape.position.y = 0.0
+	pass
 
 func fall_state(delta):
 	gravity(delta)
@@ -275,7 +276,7 @@ func fall_state(delta):
 		in_wall = false
 		go_to_wall_state()
 		return
-	if is_on_floor():
+	if velocity.y == 0:
 		if velocity.x == 0:
 			go_to_idle_state()
 			return
@@ -308,12 +309,13 @@ func wall_state(delta):
 
 func dead_state():
 	pass
-
-func hit_state():
-	pass
+	
 func attack_state(delta):
+
+	shoting()
 	gravity(delta)
 	move()
+	
 	if Input.is_action_just_released(\"attack\")and velocity.x ==0:
 		go_to_idle_state()
 		return
@@ -364,11 +366,27 @@ func gravity(delta):
 # Controla o tempo de tolerância para pulo (coyote time)
 func _on_coyote_timer_timeout() -> void:
 	pular = false
+
+func shoting():
+	
+	var new_shot = SHOT.instantiate()
+	add_sibling(new_shot)
+	new_shot.position = self.position
+	if anim.flip_h == true:
+		new_shot.set_direction(-1)
+	elif anim.flip_h == false:
+		new_shot.set_direction(1)
+	
+
+
+func _on_anim_animation_finished() -> void:
+	if anim.animation == \"attack\":
+		go_to_idle_attack_state()
+		return
 "
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_uxa4c"]
-radius = 12.0
-height = 60.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_omeo0"]
+size = Vector2(11, 59)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_so5xh"]
 atlas = ExtResource("1_p57bc")
@@ -808,99 +826,102 @@ animations = [{
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ptbwg"]
 height = 54.0
 
-[node name="Node2D" type="Node2D"]
+[node name="tutorial" type="Node2D"]
 
 [node name="CenarioTutorialCeu0" type="Sprite2D" parent="."]
-position = Vector2(2500, 351)
+position = Vector2(2500, 352)
 texture = ExtResource("9_ptbwg")
 
-[node name="CenarioTutorialBackground2" type="Sprite2D" parent="CenarioTutorialCeu0"]
-texture = ExtResource("13_xfbxg")
-
-[node name="CenarioTutorialBackground1" type="Sprite2D" parent="CenarioTutorialCeu0"]
+[node name="6" type="Sprite2D" parent="CenarioTutorialCeu0"]
+position = Vector2(2, 12)
 texture = ExtResource("14_1gr0i")
 
-[node name="CenarioTutorialBackground5" type="Sprite2D" parent="CenarioTutorialCeu0"]
-texture = ExtResource("10_mt60b")
+[node name="5" type="Sprite2D" parent="CenarioTutorialCeu0"]
+position = Vector2(-1, 14)
+texture = ExtResource("13_xfbxg")
 
-[node name="CenarioTutorialBackground3" type="Sprite2D" parent="CenarioTutorialCeu0"]
+[node name="4" type="Sprite2D" parent="CenarioTutorialCeu0"]
+position = Vector2(-5, -2)
 texture = ExtResource("12_xonmt")
 
-[node name="CenarioTutorialBackground4" type="Sprite2D" parent="CenarioTutorialCeu0"]
+[node name="3" type="Sprite2D" parent="CenarioTutorialCeu0"]
+position = Vector2(-3, -2)
 texture = ExtResource("11_aqs22")
 
-[node name="CenarioTutorialBackground7" type="Sprite2D" parent="CenarioTutorialCeu0"]
+[node name="2" type="Sprite2D" parent="CenarioTutorialCeu0"]
+position = Vector2(0, 12)
 texture = ExtResource("10_mt60b")
 
-[node name="CenarioTutorialRecovered[3]Sheet" type="Sprite2D" parent="CenarioTutorialCeu0"]
+[node name="1" type="Sprite2D" parent="CenarioTutorialCeu0"]
+position = Vector2(-2, 2)
 texture = ExtResource("10_ndims")
 
-[node name="StaticBody2D" type="StaticBody2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet"]
+[node name="StaticBody2D" type="StaticBody2D" parent="CenarioTutorialCeu0/1"]
 visible = false
 position = Vector2(-1, -7)
 collision_layer = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-2470.5, -1)
 shape = SubResource("RectangleShape2D_wkv1o")
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-1965, 308)
 shape = SubResource("RectangleShape2D_p57bc")
 
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-2083, 290)
 shape = SubResource("RectangleShape2D_kqvpm")
 
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-933, 321.5)
 shape = SubResource("RectangleShape2D_ndims")
 
-[node name="CollisionShape2D5" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-390.25, 351.5)
 shape = SubResource("RectangleShape2D_ek6hj")
 
-[node name="CollisionShape2D6" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-123.5, 278)
 shape = SubResource("RectangleShape2D_sjjer")
 
-[node name="CollisionShape2D7" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-94, 137.625)
 shape = SubResource("RectangleShape2D_soxon")
 
-[node name="CollisionShape2D8" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(67, 192.5)
 shape = SubResource("RectangleShape2D_37e0o")
 
-[node name="CollisionShape2D9" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D9" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(291.25, 118)
 shape = SubResource("RectangleShape2D_o6fqo")
 
-[node name="CollisionShape2D10" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D10" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-1601.25, 77.5)
 shape = SubResource("RectangleShape2D_ptbwg")
 
-[node name="CollisionShape2D11" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D11" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-1733, 206.5)
 shape = SubResource("RectangleShape2D_mt60b")
 
-[node name="CollisionShape2D12" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D12" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-1513.75, 169.5)
 shape = SubResource("RectangleShape2D_aqs22")
 
-[node name="CollisionShape2D13" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D13" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-1509.5, 366)
 shape = SubResource("RectangleShape2D_xonmt")
 
-[node name="CollisionShape2D14" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D14" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(1539, 357.5)
 shape = SubResource("RectangleShape2D_xfbxg")
 
-[node name="CollisionShape2D15" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D15" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-268.75, -6.5)
 shape = SubResource("RectangleShape2D_1gr0i")
 
-[node name="CollisionShape2D16" type="CollisionShape2D" parent="CenarioTutorialCeu0/CenarioTutorialRecovered[3]Sheet/StaticBody2D"]
+[node name="CollisionShape2D16" type="CollisionShape2D" parent="CenarioTutorialCeu0/1/StaticBody2D"]
 position = Vector2(-1940.5, 229)
 shape = SubResource("RectangleShape2D_v1uy6")
 
@@ -921,16 +942,15 @@ drag_horizontal_offset = 1.0
 drag_bottom_margin = 0.4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
-visible = false
 z_index = 2
-position = Vector2(-3, 4)
-shape = SubResource("CapsuleShape2D_uxa4c")
+position = Vector2(-3.5, 3.5)
+shape = SubResource("RectangleShape2D_omeo0")
 
 [node name="anim" type="AnimatedSprite2D" parent="CharacterBody2D"]
-position = Vector2(-1.5, 2.46252)
+position = Vector2(-3, 3.9999955)
 scale = Vector2(0.953125, 0.976951)
 sprite_frames = SubResource("SpriteFrames_wkv1o")
-animation = &"attack_run"
+animation = &"idle"
 
 [node name="coyote_timer" type="Timer" parent="CharacterBody2D"]
 wait_time = 0.3
@@ -961,7 +981,8 @@ light_mask = 545
 [node name="CenarioTutorialRecovered[2]" type="Sprite2D" parent="CanvasGroup"]
 texture_filter = 5
 texture_repeat = 1
-position = Vector2(2501, 349)
+position = Vector2(2502, 364)
 texture = ExtResource("9_kqvpm")
 
+[connection signal="animation_finished" from="CharacterBody2D/anim" to="CharacterBody2D" method="_on_anim_animation_finished"]
 [connection signal="timeout" from="CharacterBody2D/coyote_timer" to="CharacterBody2D" method="_on_coyote_timer_timeout"]

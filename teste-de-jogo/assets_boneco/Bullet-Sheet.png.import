@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://baslx8el06uqk"
-path="res://.godot/imported/Cenario-Tutorial-Ceu-0.png-e440101c4ecf9d261c15155fe14c395c.ctex"
+uid="uid://jvqfbrthpies"
+path="res://.godot/imported/Bullet-Sheet.png-2b252f6197f9766b3433387961c275a8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://camadas_cenario/Cenario-Tutorial-Ceu-0.png"
-dest_files=["res://.godot/imported/Cenario-Tutorial-Ceu-0.png-e440101c4ecf9d261c15155fe14c395c.ctex"]
+source_file="res://assets_boneco/Bullet-Sheet.png"
+dest_files=["res://.godot/imported/Bullet-Sheet.png-2b252f6197f9766b3433387961c275a8.ctex"]
 
 [params]
 
