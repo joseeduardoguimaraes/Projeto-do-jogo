@@ -105,7 +105,7 @@ var in_wall := true
 var wall_acelerate = 20
 var life = 3
 var life_b = 3
-
+var attaking :=true
 # Inicializa o jogador no estado idle
 func _ready() -> void:
 	go_to_idle_state()
@@ -138,11 +138,13 @@ func _physics_process(delta: float) -> void:
 
 # Funções para transição entre estados e animações correspondentes
 func go_to_idle_state():
+	attaking = true
 	status = PlayerState.idle
 	anim.play(\"idle\")
 	dash_cout = true
 
 func go_to_run_state():
+	attaking = true
 	status = PlayerState.run
 	anim.play(\"run\")
 	dash_cout = true
@@ -183,12 +185,12 @@ func go_to_idle_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_idle\")
 	in_wall = false
-	
+	shoting()
 func go_to_run_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_run\")
 	in_wall = false
-	
+	shoting()
 func go_to_up_attack_state():
 	pass
 # Lógica de cada estado
@@ -311,8 +313,6 @@ func dead_state():
 	pass
 	
 func attack_state(delta):
-
-	shoting()
 	gravity(delta)
 	move()
 	
@@ -324,9 +324,11 @@ func attack_state(delta):
 		return
 	if Input.is_action_just_pressed(\"dash\") and dash_cout:
 		go_to_dash_state()
+		return
 	if left_wall.is_colliding() and Input.is_action_pressed(\"left\") and !in_wall or right_wall.is_colliding() and Input.is_action_pressed(\"right\") and !in_wall:
 		in_wall = false
 		go_to_wall_state()
+		return
 		
 # Lida com a movimentação horizontal e o pulo
 func move():
@@ -344,10 +346,14 @@ func move():
 		else:
 			velocity.x = move_toward(velocity.x, 0, SPEED)
 		
-		if Input.is_action_pressed(\"attack\") and velocity.x == 0:
+		if Input.is_action_pressed(\"attack\") and velocity.x == 0 and attaking: #and var==true
+			attaking = false
 			go_to_idle_attack_state()
-		if Input.is_action_pressed(\"attack\") and velocity.x !=0:
+			return
+		if Input.is_action_pressed(\"attack\") and velocity.x !=0 and attaking: #and var==true
+			attaking = false
 			go_to_run_attack_state()
+			return
 # Inverte a sprite do jogador com base na direção
 func flip():
 	direction = Input.get_axis(\"left\", \"right\")
@@ -380,7 +386,8 @@ func shoting():
 
 
 func _on_anim_animation_finished() -> void:
-	if anim.animation == \"attack\":
+	if anim.animation == \"attack_idle\" or  anim.animation == \"attack_run\":
+		attaking = true
 		go_to_idle_attack_state()
 		return
 "
@@ -627,9 +634,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_v2vws")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_idle",
-"speed": 10.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -656,9 +663,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_bhnfu")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_run",
-"speed": 15.0
+"speed": 40.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -950,7 +957,7 @@ shape = SubResource("RectangleShape2D_omeo0")
 position = Vector2(-3, 3.9999955)
 scale = Vector2(0.953125, 0.976951)
 sprite_frames = SubResource("SpriteFrames_wkv1o")
-animation = &"idle"
+animation = &"attack_run"
 
 [node name="coyote_timer" type="Timer" parent="CharacterBody2D"]
 wait_time = 0.3
