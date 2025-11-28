@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://cpq5xif633g7m"]
+
+[ext_resource type="Script" uid="uid://kw8jfllfmmxg" path="res://boss.gd" id="1_b105h"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_nnfxe"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_yy71b"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_270ai"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hcu6l"]
+
+[node name="boss" type="Node2D"]
+script = ExtResource("1_b105h")
+
+[node name="sprite" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_nnfxe")
+
+[node name="hurtbox" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox"]
+shape = SubResource("CircleShape2D_yy71b")
+
+[node name="hitbox" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox"]
+shape = SubResource("CircleShape2D_270ai")
+
+[node name="targetspawner" type="Node2D" parent="."]
+
+[node name="wormsoawner" type="Node2D" parent="."]
+
+[node name="rayspawner" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="rayspawner"]
+shape = SubResource("RectangleShape2D_hcu6l")
+
+[node name="attack timer" type="Timer" parent="."]
