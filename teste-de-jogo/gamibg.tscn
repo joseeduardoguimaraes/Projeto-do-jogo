@@ -1,4 +1,4 @@
-[gd_scene load_steps=97 format=3 uid="uid://btmjcbn2512ox"]
+[gd_scene load_steps=99 format=3 uid="uid://btmjcbn2512ox"]
 
 [ext_resource type="Texture2D" uid="uid://xd8f58gpyu1y" path="res://assets_boneco/Player-dash-Sheet.png" id="1_cg8gs"]
 [ext_resource type="Texture2D" uid="uid://b8nrp2pugi1w8" path="res://assets_boneco/Player-Attack[1]-Sheet.png" id="1_p57bc"]
@@ -17,6 +17,8 @@
 [ext_resource type="Texture2D" uid="uid://ytwmcpc5jx3i" path="res://camadas_cenario/Cenario-Tutorial-background-3.png" id="12_xonmt"]
 [ext_resource type="Texture2D" uid="uid://ua7nhyf35rdj" path="res://camadas_cenario/Cenario-Tutorial-background-2.png" id="13_xfbxg"]
 [ext_resource type="Texture2D" uid="uid://dbyj3aoqqftiu" path="res://camadas_cenario/Cenario-Tutorial-background-1.png" id="14_1gr0i"]
+[ext_resource type="PackedScene" uid="uid://d0uxlnd75mdey" path="res://player/shot.tscn" id="18_xonmt"]
+[ext_resource type="PackedScene" uid="uid://dgg08ctmwkeu0" path="res://player/shot_up.tscn" id="19_xfbxg"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wkv1o"]
 size = Vector2(57, 690)
@@ -68,12 +70,10 @@ size = Vector2(37, 20)
 
 [sub_resource type="GDScript" id="GDScript_fja80"]
 script/source = "extends CharacterBody2D
-
 # -------------------------
 #  ESTADOS
 # -------------------------
 enum PlayerState { idle, run, pulo, dash, crouch, fall, wall, dead, attack }
-
 # -------------------------
 #  NÓS
 # -------------------------
@@ -82,8 +82,11 @@ enum PlayerState { idle, run, pulo, dash, crouch, fall, wall, dead, attack }
 @onready var coyote_timer: Timer = $coyote_timer
 @onready var left_wall: RayCast2D = $left_wall
 @onready var right_wall: RayCast2D = $right_wall
+@export var SHOT: PackedScene 
+@export var SHOT_up: PackedScene
 
-@onready var SHOT = preload(\"res://shot.tscn\")
+
+
 
 # -------------------------
 # CONSTANTES
@@ -91,8 +94,7 @@ enum PlayerState { idle, run, pulo, dash, crouch, fall, wall, dead, attack }
 const SPEED = 200.0
 const FORCA_PULO = -470.0
 const DASH_SPEED = 500.0
-const DASH_TIME = 0.2
-
+const DASH_TIME = 0.3
 # -------------------------
 # VARIÁVEIS
 # -------------------------
@@ -103,7 +105,6 @@ var dash_cout := true
 var pular := true
 var in_wall := true
 var wall_acelerate = 20
-
 var life = 3
 var life_b = 3
 
@@ -111,13 +112,11 @@ var life_b = 3
 var attaking := true
 var attack_cooldown := 0.25
 var attack_timer := 0.0
-
 # -------------------------
 # READY
 # -------------------------
 func _ready() -> void:
 	go_to_idle_state()
-
 # -------------------------
 # PHYSICS PROCESS
 # -------------------------
@@ -137,23 +136,20 @@ func _physics_process(delta: float) -> void:
 		PlayerState.attack:  attack_state(delta)
 
 	move_and_slide()
-
 # ===========================================================
 #  ESTADOS
 # ===========================================================
-
 func go_to_idle_state():
 	attaking = true
 	status = PlayerState.idle
 	anim.play(\"idle\")
-	dash_cout = true
 
 
 func go_to_run_state():
 	attaking = true
 	status = PlayerState.run
 	anim.play(\"run\")
-	dash_cout = true
+	
 
 
 func go_to_pulo_state():
@@ -200,7 +196,6 @@ func go_to_idle_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_idle\")
 	attaking = false
-	dash_cout = true
 	shoting()
 
 
@@ -208,7 +203,6 @@ func go_to_run_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_run\")
 	attaking = false
-	dash_cout = true
 	shoting()
 
 
@@ -216,31 +210,34 @@ func go_to_up_attack_state():
 	status = PlayerState.attack
 	anim.play(\"attack_up\")
 	attaking = false
-	dash_cout = true
+	dash_cout =true
 	shoting_up()
 
 
 func dead_state():
 	pass
-
 # ===========================================================
 #  LÓGICA DE CADA ESTADO
 # ===========================================================
-
 func idle_state(delta):
 	gravity(delta)
 	move()
 
 	if velocity.x != 0:
-		go_to_run_state(); return
+		go_to_run_state(); 
+		return
 	if velocity.y < 0:
-		go_to_pulo_state(); return
+		go_to_pulo_state(); 
+		return
 	if velocity.y > 0:
-		go_to_fall_state(); return
-	if Input.is_action_just_pressed(\"dash\") and dash_cout:
-		go_to_dash_state(); return
+		go_to_fall_state(); 
+		return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout == true:
+		go_to_dash_state(); 
+		return
 	if Input.is_action_pressed(\"crouch\") and is_on_floor():
-		go_to_crouch_state(delta); return
+		go_to_crouch_state(delta); 
+		return
 
 
 func run_state(delta):
@@ -248,15 +245,20 @@ func run_state(delta):
 	move()
 
 	if velocity.x == 0:
-		go_to_idle_state(); return
+		go_to_idle_state(); 
+		return
 	if velocity.y < 0:
-		go_to_pulo_state(); return
+		go_to_pulo_state(); 
+		return
 	if velocity.y > 0:
-		go_to_fall_state(); return
-	if Input.is_action_just_pressed(\"dash\") and dash_cout:
-		go_to_dash_state(); return
+		go_to_fall_state(); 
+		return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout == true:
+		go_to_dash_state(); 
+		return
 	if Input.is_action_pressed(\"crouch\") and is_on_floor():
-		go_to_crouch_state(delta); return
+		go_to_crouch_state(delta); 
+		return
 
 
 func pulo_state(delta):
@@ -264,41 +266,47 @@ func pulo_state(delta):
 	move()
 
 	if velocity.y > 0:
-		go_to_fall_state(); return
-	if Input.is_action_just_pressed(\"dash\") and dash_cout:
-		go_to_dash_state(); return
+		go_to_fall_state(); 
+		return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout == true:
+		go_to_dash_state(); 
+		return
 
 
 func dash_state(delta):
 	gravity(delta)
 	move()
-
+	velocity.y = 0
 	dash_timer -= delta
 	if dash_timer <= 0:
 		if velocity.y != 0:
 			go_to_fall_state()
+			return
 		elif velocity.x == 0:
 			go_to_idle_state()
+			return
 		else:
 			go_to_run_state()
-
+			return
 
 func crouch_state(delta):
 	flip()
 	if Input.is_action_just_released(\"crouch\"):
 		go_to_idle_state()
-
+		return
 
 func fall_state(delta):
 	gravity(delta)
 	move()
 
-	if Input.is_action_just_pressed(\"dash\") and dash_cout:
-		go_to_dash_state(); return
+	if Input.is_action_just_pressed(\"dash\") and dash_cout == true:
+		go_to_dash_state(); 
+		return
 
 	if (left_wall.is_colliding() and Input.is_action_pressed(\"left\") and not in_wall) \\
 	or (right_wall.is_colliding() and Input.is_action_pressed(\"right\") and not in_wall):
-		go_to_wall_state(); return
+		go_to_wall_state(); 
+		return
 
 	if velocity.y == 0:
 		if velocity.x == 0:
@@ -320,19 +328,19 @@ func wall_state(delta):
 	if Input.is_action_just_pressed(\"pulo\") and pular:
 		velocity.y = FORCA_PULO
 		in_wall = false
-		go_to_pulo_state(); return
-
+		go_to_pulo_state(); 
+		return
+	if Input.is_action_just_released(\"left\") or Input.is_action_just_released(\"right\"):
+		go_to_fall_state()
+		return
 	if is_on_floor():
 		go_to_idle_state()
-
+		return
 
 func attack_state(delta):
 	gravity(delta)
 
-	# ============================
-	# DASH DURANTE ATAQUE
-	# ============================
-	if Input.is_action_just_pressed(\"dash\") and dash_cout:
+	if Input.is_action_just_pressed(\"dash\") and dash_cout == true:
 		go_to_dash_state()
 		return
 
@@ -342,19 +350,15 @@ func attack_state(delta):
 	else:
 		move()
 
-	# ============================
-	# LOOP DE TIRO (NORMAL E CIMA)
-	# ============================
-
 	# Tiro para cima segurado
-	if Input.is_action_pressed(\"attack_up\"):
+	if Input.is_action_just_pressed(\"attack_up\"):
 		if attaking and attack_timer <= 0.0:
 			attack_timer = attack_cooldown
 			go_to_up_attack_state()
 		return
 
-	# Tiro normal segurado
-	if Input.is_action_pressed(\"attack\"):
+	
+	if Input.is_action_just_pressed(\"attack\"):
 		if attaking and attack_timer <= 0.0:
 			attack_timer = attack_cooldown
 			if abs(velocity.x) < 1:
@@ -362,25 +366,27 @@ func attack_state(delta):
 			else:
 				go_to_run_attack_state()
 		return
-
-	# ============================
-	# Soltou o botão → volta ao normal
-	# ============================
+		
+	if Input.is_action_pressed(\"attack\"): 
+		if abs(velocity.x) < 1:
+			if anim.animation != \"attack_idle\":
+				anim.play(\"attack_idle\")
+		else:
+			if anim.animation != \"attack_run\":
+				anim.play(\"attack_run\")
 
 	if not Input.is_action_pressed(\"attack\") \\
 	and not Input.is_action_pressed(\"attack_up\"):
-
+		
 		if velocity.y != 0:
 			go_to_fall_state()
 		elif abs(velocity.x) < 1:
 			go_to_idle_state()
 		else:
 			go_to_run_state()
-
 # ===========================================================
 #  MOVIMENTO / PULO / ATAQUE
 # ===========================================================
-
 func move():
 	flip()
 
@@ -397,20 +403,18 @@ func move():
 			velocity.x = direction * SPEED
 		else:
 			velocity.x = move_toward(velocity.x, 0, SPEED)
-
 	# ---------------------------
 	# SISTEMA DE ATAQUE
 	# ---------------------------
-
 	# TIRO PARA CIMA (prioridade)
-	if Input.is_action_pressed(\"attack_up\"):
+	if Input.is_action_just_pressed(\"attack_up\"):
 		if attaking and attack_timer <= 0.0:
 			attack_timer = attack_cooldown
 			go_to_up_attack_state()
 			return
 
 	# TIRO NORMAL
-	if Input.is_action_pressed(\"attack\"):
+	if Input.is_action_just_pressed(\"attack\"):
 		if attaking and attack_timer <= 0.0:
 			attack_timer = attack_cooldown
 			if velocity.x == 0:
@@ -418,11 +422,9 @@ func move():
 			else:
 				go_to_run_attack_state()
 			return
-
 # ===========================================================
 #  HELPERS
 # ===========================================================
-
 func flip():
 	if direction < 0:
 		anim.flip_h = true
@@ -436,15 +438,13 @@ func gravity(delta):
 	else:
 		if status != PlayerState.dash:
 			velocity.y = 0
-
+			dash_cout = true
 
 func _on_coyote_timer_timeout() -> void:
 	pular = false
-
 # ===========================================================
 #  TIROS
 # ===========================================================
-
 func shoting():
 	var new_shot = SHOT.instantiate()
 	add_sibling(new_shot)
@@ -455,18 +455,33 @@ func shoting():
 	else:
 		new_shot.set_direction(Vector2.RIGHT)
 
-
 func shoting_up():
-	var new_shot = SHOT.instantiate()
+	var new_shot = SHOT_up.instantiate()
 	add_sibling(new_shot)
 	new_shot.position = self.position
 	new_shot.set_direction(Vector2(0, -1))
-
 # ===========================================================
 #  ANIMAÇÃO
 # ===========================================================
-
 func _on_anim_animation_finished():
+	if anim.animation.begins_with(\"attack\"):
+		if anim.animation == \"attack_up\":
+			shoting_up()
+		else:
+			shoting()
+
+		if Input.is_action_pressed(\"attack_up\"):
+			anim.play(\"attack_up\")
+			return
+
+		if Input.is_action_pressed(\"attack\"):
+			if abs(velocity.x) < 1:
+				anim.play(\"attack_idle\")
+			else:
+				anim.play(\"attack_run\")
+			return
+
+	# Se não estiver mais atacando → libera
 	attaking = true
 "
 
@@ -1040,6 +1055,8 @@ shape = SubResource("RectangleShape2D_v1uy6")
 position = Vector2(190, 242)
 collision_mask = 2
 script = SubResource("GDScript_fja80")
+SHOT = ExtResource("18_xonmt")
+SHOT_up = ExtResource("19_xfbxg")
 
 [node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
 scale = Vector2(5, 5)
@@ -1061,7 +1078,7 @@ shape = SubResource("RectangleShape2D_omeo0")
 position = Vector2(-3, 3.9999955)
 scale = Vector2(0.953125, 0.976951)
 sprite_frames = SubResource("SpriteFrames_wkv1o")
-animation = &"attack_up"
+animation = &"idle"
 
 [node name="coyote_timer" type="Timer" parent="CharacterBody2D"]
 wait_time = 0.3

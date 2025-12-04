@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3 uid="uid://d0uxlnd75mdey"]
 
-[ext_resource type="Script" uid="uid://wdxq2itn7rin" path="res://shot.gd" id="1_3ldfn"]
+[ext_resource type="Script" uid="uid://y82qnnidfvdj" path="res://player/shot.gd" id="1_17n84"]
 [ext_resource type="Texture2D" uid="uid://jvqfbrthpies" path="res://assets_boneco/Bullet-Sheet.png" id="2_f4qg3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_w34ps"]
@@ -50,7 +50,7 @@ animations = [{
 }]
 
 [node name="shot" type="Area2D"]
-script = ExtResource("1_3ldfn")
+script = ExtResource("1_17n84")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_w34ps")
