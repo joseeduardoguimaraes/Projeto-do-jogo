@@ -1,0 +1,48 @@
+[gd_scene load_steps=8 format=3 uid="uid://ce178l8ge0qou"]
+
+[ext_resource type="Script" uid="uid://dwjjne04fem3a" path="res://boss/ataque_2.gd" id="1_c0h4m"]
+[ext_resource type="Texture2D" uid="uid://cnaiuqxlhjqj2" path="res://boss/Attack_2-Sheet.png" id="1_whfqa"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_voc7q"]
+atlas = ExtResource("1_whfqa")
+region = Rect2(0, 0, 320, 320)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lilp2"]
+atlas = ExtResource("1_whfqa")
+region = Rect2(320, 0, 320, 320)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2rd2g"]
+atlas = ExtResource("1_whfqa")
+region = Rect2(640, 0, 320, 320)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_c0h4m"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_voc7q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lilp2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rd2g")
+}],
+"loop": true,
+"name": &"peido",
+"speed": 10.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_44axe"]
+
+[node name="ataque_2" type="Node2D"]
+script = ExtResource("1_c0h4m")
+
+[node name="anim" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.2625, 0.2625)
+sprite_frames = SubResource("SpriteFrames_c0h4m")
+animation = &"peido"
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_44axe")

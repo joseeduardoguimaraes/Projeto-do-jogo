@@ -1,38 +1,72 @@
-[gd_scene load_steps=6 format=3 uid="uid://cpq5xif633g7m"]
+[gd_scene load_steps=10 format=3 uid="uid://cpq5xif633g7m"]
 
 [ext_resource type="Script" uid="uid://kw8jfllfmmxg" path="res://boss.gd" id="1_b105h"]
+[ext_resource type="Texture2D" uid="uid://dfut85ae6w7n2" path="res://boss/Boss[1]-Sheet.png" id="2_nnfxe"]
+[ext_resource type="Script" uid="uid://b7rqstlvqfqn2" path="res://boss/hurtbox.gd" id="3_yy71b"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yy71b"]
+atlas = ExtResource("2_nnfxe")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_270ai"]
+atlas = ExtResource("2_nnfxe")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hcu6l"]
+atlas = ExtResource("2_nnfxe")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ti23b"]
+atlas = ExtResource("2_nnfxe")
+region = Rect2(192, 0, 64, 64)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_nnfxe"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yy71b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_270ai")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hcu6l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ti23b")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_yy71b"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_270ai"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hcu6l"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b105h"]
+size = Vector2(139, 182)
 
 [node name="boss" type="Node2D"]
 script = ExtResource("1_b105h")
 
-[node name="sprite" type="AnimatedSprite2D" parent="."]
+[node name="anim" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.78125, 2.78125)
 sprite_frames = SubResource("SpriteFrames_nnfxe")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="hurtbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("3_yy71b")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox"]
-shape = SubResource("CircleShape2D_yy71b")
+position = Vector2(0.5, -3)
+shape = SubResource("RectangleShape2D_b105h")
 
-[node name="hitbox" type="Area2D" parent="."]
+[node name="timer peido" type="Timer" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox"]
-shape = SubResource("CircleShape2D_270ai")
+[node name="timer minhoca" type="Timer" parent="."]
 
-[node name="targetspawner" type="Node2D" parent="."]
+[node name="timer layzao" type="Timer" parent="."]
 
-[node name="wormsoawner" type="Node2D" parent="."]
-
-[node name="rayspawner" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="rayspawner"]
-shape = SubResource("RectangleShape2D_hcu6l")
-
-[node name="attack timer" type="Timer" parent="."]
+[connection signal="timeout" from="timer peido" to="." method="_on_timer_peido_timeout"]
+[connection signal="timeout" from="timer minhoca" to="." method="_on_timer_minhoca_timeout"]
+[connection signal="timeout" from="timer layzao" to="." method="_on_timer_layzao_timeout"]

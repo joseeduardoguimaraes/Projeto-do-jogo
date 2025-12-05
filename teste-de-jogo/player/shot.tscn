@@ -50,6 +50,8 @@ animations = [{
 }]
 
 [node name="shot" type="Area2D"]
+collision_layer = 8
+collision_mask = 4
 script = ExtResource("1_17n84")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -60,3 +62,5 @@ sprite_frames = SubResource("SpriteFrames_8hqvh")
 animation = &"shot"
 autoplay = "shot"
 frame_progress = 0.90889806
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]

@@ -1,0 +1,74 @@
+[gd_scene load_steps=12 format=3 uid="uid://bx1la1ydal3ap"]
+
+[ext_resource type="Script" uid="uid://dcxl5gxqn1io1" path="res://boss/ataque_1.gd" id="1_wr2be"]
+[ext_resource type="Texture2D" uid="uid://dufibx1q7f77q" path="res://boss/Attack_1[1]-Sheet.png" id="2_xbh72"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7pw3p"]
+atlas = ExtResource("2_xbh72")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ry8ce"]
+atlas = ExtResource("2_xbh72")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_swuet"]
+atlas = ExtResource("2_xbh72")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e78vo"]
+atlas = ExtResource("2_xbh72")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k32s8"]
+atlas = ExtResource("2_xbh72")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gwlre"]
+atlas = ExtResource("2_xbh72")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_voc7q"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7pw3p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ry8ce")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_swuet")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e78vo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k32s8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gwlre")
+}],
+"loop": true,
+"name": &"new_animation",
+"speed": 12.0
+}]
+
+[sub_resource type="GDScript" id="GDScript_wr2be"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xbh72"]
+
+[node name="ataque_1" type="Node2D"]
+script = ExtResource("1_wr2be")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.09375, 2.09375)
+sprite_frames = SubResource("SpriteFrames_voc7q")
+animation = &"new_animation"
+frame_progress = 0.75890386
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 8
+script = SubResource("GDScript_wr2be")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_xbh72")

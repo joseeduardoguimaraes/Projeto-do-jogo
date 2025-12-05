@@ -1,0 +1,121 @@
+[gd_scene load_steps=14 format=3 uid="uid://38cftxcdaemw"]
+
+[ext_resource type="Script" uid="uid://dbjmb1xult3n1" path="res://boss/ataque_3.gd" id="1_ic6op"]
+[ext_resource type="Texture2D" uid="uid://cunm4du1evu46" path="res://boss/Attack_3[1]-Sheet.png" id="2_x57jq"]
+
+[sub_resource type="GDScript" id="GDScript_2pk7x"]
+script/source = "extends Node2D
+
+@export var pillar_height: float = 800.0
+@onready var anime: AnimatedSprite2D = $anime
+
+
+func make_pilar(frames, anim, height):
+	var piece_height = frames.get_frame_texture(anim, 0).get_height()
+	var needed = int(ceil(height / piece_height))
+
+	for i in range(needed):
+		var a = AnimatedSprite2D.new()
+		a.sprite_frames = frames
+		a.animation = anim
+		a.play()
+		a.position.y = i * piece_height
+		add_child(a)
+
+		# QUALQUER peça que terminar destrói o pilar inteiro
+		a.connect(\"animation_finished\", Callable(self, \"_on_animation_finished\"))
+
+
+func _ready():
+	var frames = anime.sprite_frames
+	var anim = anime.animation
+
+	anime.visible = false  # esconder o original
+
+	make_pilar(frames, anim, pillar_height)
+
+
+func _on_animation_finished():
+	queue_free()
+"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2pk7x"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p5y72"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_km608"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_21qji"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mhntr"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eamqc"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ncxw"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d6bgu"]
+atlas = ExtResource("2_x57jq")
+region = Rect2(224, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_d5n01"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2pk7x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p5y72")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_km608")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_21qji")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mhntr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eamqc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ncxw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d6bgu")
+}],
+"loop": true,
+"name": &"new_animation",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dbwtc"]
+size = Vector2(271, 9475)
+
+[node name="ataque_3" type="Node2D"]
+script = SubResource("GDScript_2pk7x")
+
+[node name="anime" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_d5n01")
+animation = &"new_animation"
+frame_progress = 0.6472709
+script = ExtResource("1_ic6op")
+
+[node name="Area2D" type="Area2D" parent="anime"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="anime/Area2D"]
+shape = SubResource("RectangleShape2D_dbwtc")
